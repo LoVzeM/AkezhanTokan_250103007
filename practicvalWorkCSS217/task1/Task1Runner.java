@@ -1,0 +1,37 @@
+package task1;
+
+public class Task1Runner {
+
+    public static void main(String[] args) {
+        String[] headers = {"ID", "User", "Role"};
+        String[][] rows = {
+            {"101", "sufyan", "Admin"},
+            {"102", "alex", "Dev"}
+        };
+
+        // Strategy: choose JSON formatting.
+        ReportFormatter jsonStrategy = new JsonFormatter();
+        String rawJson = jsonStrategy.format("UserAuditReport", headers, rows);
+
+        // Also demonstrate that CSV is an interchangeable strategy.
+        ReportFormatter csvStrategy = new CsvFormatter();
+        String rawCsv = csvStrategy.format("UserAuditReport", headers, rows);
+        System.out.println(">>> CSV STRATEGY DEMO <<<");
+        System.out.println(rawCsv);
+
+        // Decorator stack: Base64(HeaderFooter(BaseFileExporter)).
+        System.out.println(
+            ">>> TESTING DECORATOR STACK: "
+            + "Base64(HeaderFooter(BaseFileExporter)) <<<"
+        );
+
+        Exporter securePipeline = new Base64EncryptDecorator(
+            new HeaderFooterDecorator(
+                new BaseFileExporter(),
+                "2026-11-02 10:00:00 UTC"
+            )
+        );
+
+        securePipeline.export("/var/logs/audit.sec", rawJson);
+    }
+}
